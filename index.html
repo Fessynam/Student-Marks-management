@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Marks Management</title>
+</head>
+
+<body>
+    <h1>Student Marks Management</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Surname</th>
+                <th>CA Mark</th>
+                <th>Exam Mark</th>
+                <th>Final Mark</th>
+                <th>Grade</th>
+            </tr>
+        </thead>
+        <tbody id="studentList">
+            <!-- Students will be populated here using JavaScript -->
+        </tbody>
+    </table>
+
+    <script>
+        const students = [];
+
+        // Function to update the table with student data
+        function updateTable() {
+            const studentList = document.getElementById("studentList");
+
+            // Clear the table
+            studentList.innerHTML = "";
+
+            // Populate the table with student data
+            students.forEach((student, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${student.firstName}</td>
+                    <td>${student.surname}</td>
+                    <td><input type="number" id="caMark_${index}" value="${student.caMark || ''}" onchange="calculateFinal(${index})"></td>
+                    <td><input type="number" id="examMark_${index}" value="${student.examMark || ''}" onchange="calculateFinal(${index})"></td>
+                    <td>${student.finalMark || ''}</td>
+                    <td>${student.grade || ''}</td>
+                `;
+                studentList.appendChild(row);
+            });
+        }
+
+        // Function to calculate final mark and grade
+        function calculateFinal(index) {
+            const caMarkInput = document.getElementById(`caMark_${index}`);
+            const examMarkInput = document.getElementById(`examMark_${index}`);
+            const student = students[index];
+
+            // Ensure CA and Exam marks are valid numbers
+            const caMark = parseFloat(caMarkInput.value) || 0;
+            const examMark = parseFloat(examMarkInput.value) || 0;
+
+            // Update the student object with CA and Exam Marks
+            student.caMark = caMark;
+            student.examMark = examMark;
+
+            // Check if both CA and Exam Marks are entered
+            if (caMark > 0 && examMark > 0) {
+                // Calculate Final Mark and Grade
+                const finalMarkData = calcFinalMark(caMark, examMark);
+
+                // Assign the values to the student object
+                student.finalMark = finalMarkData[0];
+                student.grade = finalMarkData[1];
+            } else {
+                // If either CA or Exam Mark is missing, clear the Final Mark and Grade
+                student.finalMark = '';
+                student.grade = '';
+            }
+
+            // Update the table
+            updateTable();
+        }
+
+        // Function to calculate the Final Mark and Grade
+        function calcFinalMark(ca, exam) {
+            const finalMark = (ca * 0.4) + (exam * 0.6);
+            let grade;
+
+            if (finalMark >= 80) {
+                grade = "Excellent";
+            } else if (finalMark >= 70) {
+                grade = "Very Good";
+            } else if (finalMark >= 60) {
+                grade = "Good";
+            } else if (finalMark >= 50) {
+                grade = "Qualifies for Supp";
+            } else {
+                grade = "Fail";
+            }
+
+            return [finalMark.toFixed(1), grade];
+        }
+
+        // Function to add a new student
+        function addStudent() {
+            const firstName = prompt("Enter First Name:");
+            const surname = prompt("Enter Surname:");
+            if (firstName && surname) {
+                students.push({
+                    firstName,
+                    surname,
+                    caMark: '',
+                    examMark: '',
+                    finalMark: '',
+                    grade: ''
+                });
+                updateTable();
+            }
+        }
+
+        // Load student data from localStorage if available
+        const storedStudents = localStorage.getItem("students");
+        if (storedStudents) {
+            students.push(...JSON.parse(storedStudents));
+            updateTable();
+        }
+    </script>
+
+    <button onclick="addStudent()">Add Student</button>
+</body>
+
+</html>
